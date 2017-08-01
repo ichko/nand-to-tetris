@@ -15,5 +15,69 @@ CHIP RAM64 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // Ram selector
+    DMux8Way (
+        in=true, sel=address[0..2],
+        a=g00,
+        b=g01,
+        c=g02,
+        d=g03,
+        e=g04,
+        f=g05,
+        g=g06,
+        h=g07
+    );
+    // Stop ram selector if needed
+    And16 (
+        a[0]=load,
+        a[1]=load,
+        a[2]=load,
+        a[3]=load,
+        a[4]=load,
+        a[5]=load,
+        a[6]=load,
+        a[7]=load,
+        b[0]=g00,
+        b[1]=g01,
+        b[2]=g02,
+        b[3]=g03,
+        b[4]=g04,
+        b[5]=g05,
+        b[6]=g06,
+        b[7]=g07,
+        out[0]=r0,
+        out[1]=r1,
+        out[2]=r2,
+        out[3]=r3,
+        out[4]=r4,
+        out[5]=r5,
+        out[6]=r6,
+        out[7]=r7
+    );
+
+    RAM8 (in=in, load=r0, address=address[3..5], out=o0);
+    RAM8 (in=in, load=r1, address=address[3..5], out=o1);
+    RAM8 (in=in, load=r2, address=address[3..5], out=o2);
+    RAM8 (in=in, load=r3, address=address[3..5], out=o3);
+    RAM8 (in=in, load=r4, address=address[3..5], out=o4);
+    RAM8 (in=in, load=r5, address=address[3..5], out=o5);
+    RAM8 (in=in, load=r6, address=address[3..5], out=o6);
+    RAM8 (in=in, load=r7, address=address[3..5], out=o7);
+
+    Mux16 (a=false, b=o0, sel=g00, out=oo0);
+    Mux16 (a=false, b=o1, sel=g01, out=oo1);
+    Mux16 (a=false, b=o2, sel=g02, out=oo2);
+    Mux16 (a=false, b=o3, sel=g03, out=oo3);
+    Mux16 (a=false, b=o4, sel=g04, out=oo4);
+    Mux16 (a=false, b=o5, sel=g05, out=oo5);
+    Mux16 (a=false, b=o6, sel=g06, out=oo6);
+    Mux16 (a=false, b=o7, sel=g07, out=oo7);
+    
+    Or16 (a=oo0 , b=oo1, out=oo01);
+    Or16 (a=oo01, b=oo2, out=oo12);
+    Or16 (a=oo12, b=oo3, out=oo23);
+    Or16 (a=oo23, b=oo4, out=oo34);
+    Or16 (a=oo34, b=oo5, out=oo45);
+    Or16 (a=oo45, b=oo6, out=oo56);
+    Or16 (a=oo56, b=oo7, out=out);
 }
