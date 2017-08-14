@@ -8,82 +8,23 @@
 
 // Put your code here.
 
-
-// Check zeros
+// Read input
+@R0
+D = M
 @a
-D = M
-@ZERO
-D; JEQ
+M = D
 
+@R1
+D = M
 @b
-D = M
-@ZERO
-D; JEQ
+M = D
 
-
-(SIGN_LOGIC_SPLIT)
-    @b
-    D = M
-    @B_NEGATIVE
-    D; JLT
-
-(B_POSITIVE)
-    @a
-    D = M
-    @B_POS_A_NEG
-    D; JLT
-    @B_POS_A_POS
-    0; JMP
-
-(B_NEGATIVE)
-    @a
-    D = M
-    @B_NEG_A_NEG
-    D; JLT
-    @B_NEG_A_POS
-    0; JMP
-
-
-(B_POS_A_NEG)
-    @a
-    M = -M
-    @DIFF_SIGN
-    0; JMP
-
-(B_NEG_A_POS)
-    @b
-    M = -M
-
-(DIFF_SIGN)
-    @DIFF_SIGN_RES
-    D = M // Set the return address
-    @MULT_LOOP
-    0; JMP // Execute
-    (DIFF_SIGN_RES)
-        @res
-        M = -M
-        @RETURN
-        0; JMP
-
-(B_NEG_A_NEG)
-    @a
-    M = -M
-    @b
-    M = -M
-
-(B_POS_A_POS)
-    @EQ_SIGN_RES
-    D = M // Set the return address
-    @MULT_LOOP
-    0; JMP // Execute
-    (EQ_SIGN_RES)
-        @RETURN
-        0; JMP
-
+@R2
+M = 0
+@res
+M = 0
 
 (MULT_LOOP)
-    @res_addr // Set D to the result address
-    M = D
     @i
     M = 1
 
@@ -92,25 +33,19 @@ D; JEQ
         D = M
         @b
         D = D - M
-        @res_addr
-        D = M
+        @RETURN
         D; JGT
 
         @i
         M = M + 1
 
-        @res
-        D = M
         @a
-        D = D + M
+        D = M
+        @res
+        M = M + D
 
         @LOOP
         0; JMP
-
-
-(ZERO)
-    @res
-    M = 0
 
 (RETURN)
     @res
