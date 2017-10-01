@@ -40,29 +40,59 @@ CHIP CPU {
 
     PARTS:
 
-    Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=AMuxOut);
-    ARegister(in=AMuxOut, load=instruction[5], out=ARegOut);
-    DRegister(in=ALUOut, load=instruction[4], out=DRegOut);
+    Or(a=false, b=instruction[15], out=cInstruction);
+    And(a=cInstruction, b=instruction[5], out=ALoadIfCInstr);
+    And(a=cInstruction, b=instruction[4], out=DLoadIfCInstr);
 
-    Or(a=true, b=instruction[3], out=writeM);
-    Or16(a=true, b=ARegOut, out=addressM);
-    Or16(a=true, b=ALUOut, out=outM);
+    Mux(a=true, b=ALoadIfCInstr, sel=cInstruction, out=ARegLoad);
+    Mux16(a=instruction, b=ALUOut, sel=cInstruction, out=AMuxOut);
+    ARegister(in=AMuxOut, load=ARegLoad, out=ARegOut);
+    DRegister(in=ALUOut, load=DLoadIfCInstr, out=DRegOut);
+
+    // Write to memory if C instruction
+    And(a=instruction[3], b=cInstruction, out=writeM);
+    Or16(a=false, b=ARegOut, out[0..14]=addressM);
+    Or16(a=false, b=ALUOut, out=outM);
 
     Mux16(a=ARegOut, b=inM, sel=instruction[12], out=AMRegOut);
 
     ALU(
         x=DRegOut, y=AMRegOut,
-        zx=instruction[6],
-        nx=instruction[7],
-        zy=instruction[8],
-        ny=instruction[9],
-        f =instruction[10],
-        no=instruction[11],
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f =instruction[7],
+        no=instruction[6],
         out=ALUOut,
-        zr=ALUZr
+        zr=ALUZr,
         ng=ALUNg
     );
 
-    PC(reset=reset, in=ARegOut, inc=true, out=pc);
+    Not(in=ALUZr, out=NotZr);
+    Not(in=ALUNg, out=NotNg);
+    And(a=NotNg, b=NotZr, out=ALUGt);
+
+    Not(in=instruction[2], out=NGT);
+    Not(in=instruction[0], out=NLT);
+    Not(in=instruction[1], out=NNEQ);
+    And(a=NGT, b=instruction[0], out=GTCond);
+    And(a=NLT, b=instruction[2], out=LTCond);
+
+    And(a=NNEQ, b=instruction[0], out=NEQHalfCond);
+    And(a=NEQHalfCond, b=instruction[2], out=NEQFullCond);
+
+    And(a=instruction[0], b=instruction[1], out=JMPHalf);
+    And(a=JMPHalf, b=instruction[2], out=JMP);
+
+    And(a=ALUZr, b=instruction[1], out=EQ);
+    And(a=NotZr, b=NEQFullCond, out=NEQ);
+    And(a=ALUGt, b=GTCond, out=GT);
+    And(a=ALUNg, b=LTCond, out=LT);
+
+    Or16Way(in[0]=EQ, in[1]=GT, in[2]=LT, in[3]=NEQ, in[4]=JMP, out=PCLoad);
+    And(a=PCLoad, b=cInstruction, out=PCLoadIfCInstr);
+
+    PC(reset=reset, load=PCLoadIfCInstr, in=ARegOut, inc=true, out[0..14]=pc);
 
 }
