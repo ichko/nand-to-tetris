@@ -17,10 +17,6 @@ class Command {
     preprocess() {
         return this;
     }
-
-    build() {
-        return `error at line ${ this.line }`;
-    }
 }
 
 class LabelCommand extends Command {
@@ -61,6 +57,7 @@ export class Parser {
             .replace(constant.commentRegex, constant.emptyWord);
 
         this.commandRouter = {
+            '\(.*\)': token => new LabelCommand(token),
             '@\w+': token => new ACommand(token),
             '[\w+=]*.*[;\w*]*': token => new CCommand(token),
             '.*': token => new Command(token)
@@ -79,7 +76,7 @@ export class Parser {
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
             .map((token, line) => this.makeCommand({ token, line }))
-            .map(command => command.preprocess(context))
+            .map(command => command.process(context))
             .filter(command => command.valid())
             .map(command => context[command.token])
             .join(constant.newLine);
