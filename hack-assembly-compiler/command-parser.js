@@ -1,13 +1,13 @@
-const constant = {
+export const constant = {
     whitespaceRegex: new RegExp('[\s]+', 'g'),
     commentRegex: new RegExp('\/\/.+', 'g'),
     emptyWord: '',
     newLine: '\n'
 }
 
-class Command {
-    constructor({ line }) {
-        this.line = line;
+export class Command {
+    constructor({ token }) {
+        this.token = token;
     }
 
     valid() {
@@ -17,33 +17,9 @@ class Command {
     preprocess() {
         return this;
     }
-}
 
-class LabelCommand extends Command {
-    constructor({ token, line }) {
-        this.line = line;
-        this.token = token;
-    }
-
-    preprocess(context) {
-        context[this.line + 1] = this.token;
-        return this;
-    }
-
-    valid() {
-        return false;
-    }
-}
-
-class ACommand extends Command {
-    constructor({ token }) {
-        this.token = token;
-    }
-}
-
-class CCommand extends Command{
-    constructor({ token }) {
-        this.token = token;
+    compile(context) {
+        return context[this.token];
     }
 }
 
@@ -57,11 +33,14 @@ export class Parser {
             .replace(constant.commentRegex, constant.emptyWord);
 
         this.commandRouter = {
-            '\(.*\)': token => new LabelCommand(token),
-            '@\w+': token => new ACommand(token),
-            '[\w+=]*.*[;\w*]*': token => new CCommand(token),
             '.*': token => new Command(token)
         };
+    }
+
+    addRoutes(routes) {
+        Object.keys(routes).forEach(routeKey =>
+            this.commandRouter[routeKey] = routes[routeKey]);
+        return this;
     }
 
     makeCommand(input) {
@@ -76,9 +55,9 @@ export class Parser {
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
             .map((token, line) => this.makeCommand({ token, line }))
-            .map(command => command.process(context))
+            .map(command => command.preprocess(context))
             .filter(command => command.valid())
-            .map(command => context[command.token])
+            .map(command => command.compile(context, commandId))
             .join(constant.newLine);
     }
 }
