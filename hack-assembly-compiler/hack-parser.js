@@ -10,14 +10,14 @@ function assignVariableAddress() {
     return variableAddress++;
 }
 
-export class HhlParser extends Parser {
+export class HackParser extends Parser {
     constructor(...args) {
         super(...args);
-        this.commandRouter = {
+        this.addRoutes({
             '\(.*\)': token => new LabelCommand(token),
             '@(\w+)': token => new ACommand(token),
             '(\w+)=*([\w+\-!&|]*);*(\w*)': token => new CCommand(token)
-        };
+        });
     }
 }
 

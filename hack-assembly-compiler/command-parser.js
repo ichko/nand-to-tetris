@@ -50,7 +50,6 @@ export class Parser {
     }
 
     parse() {
-        let context = {};
         return this.tokenize(this.srcCode)
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
