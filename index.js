@@ -1,4 +1,4 @@
-import { HackParser } from './hdl-parser';
+import { HackParser } from './hack-assembly-compiler/hack-parser';
 
 
 const srcCode = `

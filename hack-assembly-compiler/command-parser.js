@@ -6,7 +6,7 @@ export const constant = {
 }
 
 export class Command {
-    constructor({ token }) {
+    constructor({ token } = {}) {
         this.token = token;
     }
 
@@ -33,7 +33,7 @@ export class Parser {
             .replace(constant.commentRegex, constant.emptyWord);
 
         this.commandRouter = {
-            '.*': token => new Command(token)
+            // '.*': token => new Command(token)
         };
     }
 
@@ -44,19 +44,22 @@ export class Parser {
     }
 
     makeCommand(input) {
-        return new Object.keys(this.commandRouter)
-            .map(route => new RegExp(route, 'g'))
-            .find(routeRegex => routeRegex.test(token))(input);
+        const commandIdentifier = Object.keys(this.commandRouter)
+            .find(route => new RegExp(route, 'g').test(input.token));
+        const constructor = this.commandRouter[commandIdentifier];
+
+        return constructor && new constructor(input);
     }
 
     parse() {
+        let context = {};
         return this.tokenize(this.srcCode)
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
             .map((token, line) => this.makeCommand({ token, line }))
             .map(command => command.preprocess(context))
             .filter(command => command.valid())
-            .map(command => command.compile(context, commandId))
+            .map(command => command.compile(context))
             .join(constant.newLine);
     }
 }

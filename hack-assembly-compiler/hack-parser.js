@@ -1,8 +1,10 @@
 import { Command, Parser } from './command-parser';
+import * as config from './config';
 
 const constant = {
-    aCommandRegExStr: '@(\w+)',
-    labelCommandRegExStr: '\((\w+)\)'
+    aCommandRegExStr: '@(\\w+)',
+    labelCommandRegExStr: '\\((\\w+)\\)',
+    cCommandRegExStr: '(\\w+)=*([\\w+!&|-]*);*(\\w*)'
 };
 
 let variableAddress = 16;
@@ -14,17 +16,18 @@ export class HackParser extends Parser {
     constructor(...args) {
         super(...args);
         this.addRoutes({
-            '\(.*\)': token => new LabelCommand(token),
-            '@(\w+)': token => new ACommand(token),
-            '(\w+)=*([\w+\-!&|]*);*(\w*)': token => new CCommand(token)
+            [constant.labelCommandRegExStr]: token => new LabelCommand(token),
+            [constant.aCommandRegExStr]: token => new ACommand(token),
+            [constant.cCommandRegExStr]: token => new CCommand(token)
         });
     }
 }
 
 export class LabelCommand extends Command {
     constructor({ token, line }) {
+        super();
         this.line = line;
-        [ _, this.tokenValue] = new RegExp(constant.labelCommandRegExStr).exec(token);
+        this.tokenValue = new RegExp(constant.labelCommandRegExStr).exec(token)[1];
     }
 
     preprocess(context) {
@@ -39,20 +42,31 @@ export class LabelCommand extends Command {
 
 export class ACommand extends Command {
     constructor({ token }) {
-        [ _, this.tokeValue ] = new RegExp(constant.aCommandRegExStr, 'g').exec(token);
+        super();
+        this.tokenValue = new RegExp(constant.aCommandRegExStr, 'g').exec(token)[1];
+    }
+
+    preprocess(context) {
+        if (new RegExp('[0-9]+', 'g').test(this.tokenValue)) {
+            context[this.tokenValue] = this.tokenValue;
+        }
+
+        return this;
     }
 
     compile(context) {
-        return context[tokeValue] || assignVariableAddress();
+        return context[this.tokenValue] || assignVariableAddress();
     }
 }
 
 export class CCommand extends Command {
     constructor({ token }) {
-        this.token = token;
+        super();
+        let [ _, destination, command, jump ] = new RegExp(constant.cCommandRegExStr, 'g').exec(token);
+        this.token = { destination, command, jump };
     }
 
     compile(context) {
-        return context[this.token];
+        return '';
     }
 }
