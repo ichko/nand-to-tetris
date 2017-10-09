@@ -7,7 +7,7 @@ const srcCode = `
 @2
 D=A
 @3
-D=D+A
+D=D+A //cdsa
 @0
 M=D
 `;
