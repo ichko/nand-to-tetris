@@ -5,16 +5,16 @@ export const constant = {
     newLine: '\n'
 }
 
-export class Command {
-    constructor({ token } = {}) {
-        this.token = token;
+export class Pipe {
+    route() {
+        return /$^/g;
     }
 
     valid() {
         return true;
     }
 
-    preprocess() {
+    preprocess({ token }) {
         return this;
     }
 
@@ -32,23 +32,14 @@ export class Parser {
             .replace(constant.whitespaceRegex, constant.emptyWord)
             .replace(constant.commentRegex, constant.emptyWord);
 
-        this.commandRouter = {
-            // '.*': token => new Command(token)
-        };
+        this.parserPipes = [
+            new Pipe()
+        ];
     }
 
-    addRoutes(routes) {
-        Object.keys(routes).forEach(routeKey =>
-            this.commandRouter[routeKey] = routes[routeKey]);
+    addRoutes(...routes) {
+        this.parserPipes.push(...routes);
         return this;
-    }
-
-    makeCommand(input) {
-        const commandIdentifier = Object.keys(this.commandRouter)
-            .find(route => new RegExp(route, 'g').test(input.token));
-        const constructor = this.commandRouter[commandIdentifier];
-
-        return constructor && new constructor(input);
     }
 
     parse() {
@@ -56,10 +47,10 @@ export class Parser {
         return this.tokenize(this.srcCode)
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
-            .map((token, line) => this.makeCommand({ token, line }))
-            .map(command => command.preprocess(context))
-            .filter(command => command.valid())
-            .map(command => command.compile(context))
+            .map(token => [token, this.parserPipes.find(pipe => pipe.route().test(token))])
+            .map(([ token, pipe ], commandId) => pipe.preprocess({ token, context, commandId }))
+            .filter(([ token, pipe ]) => pipe.vlid())
+            .map(pipe => pipe.compile(context))
             .join(constant.newLine);
     }
 }

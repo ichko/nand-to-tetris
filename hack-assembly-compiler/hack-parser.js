@@ -1,11 +1,6 @@
-import { Command, Parser } from './command-parser';
+import { Pipe, Parser } from './command-parser';
 import * as config from './config';
 
-const constant = {
-    aCommandRegExStr: '@(\\w+)',
-    labelCommandRegExStr: '\\((\\w+)\\)',
-    cCommandRegExStr: '(\\w+)=*([\\w+!&|-]*);*(\\w*)'
-};
 
 let variableAddress = 16;
 function assignVariableAddress() {
@@ -15,19 +10,22 @@ function assignVariableAddress() {
 export class HackParser extends Parser {
     constructor(...args) {
         super(...args);
-        this.addRoutes({
-            [constant.labelCommandRegExStr]: token => new LabelCommand(token),
-            [constant.aCommandRegExStr]: token => new ACommand(token),
-            [constant.cCommandRegExStr]: token => new CCommand(token)
-        });
+        this.addRoutes(
+            new LabelPipe(),
+            new APipe(),
+            new CPipe()
+        );
     }
 }
 
-export class LabelCommand extends Command {
-    constructor({ token, line }) {
-        super();
+export class LabelPipe extends Pipe {
+    route() {
+        return /\((\w+)\)/g;
+    }
+
+    preprocess({ token, line }) {
         this.line = line;
-        this.tokenValue = new RegExp(constant.labelCommandRegExStr).exec(token)[1];
+        this.tokenValue = this.route().exec(token)[1];
     }
 
     preprocess(context) {
@@ -40,15 +38,15 @@ export class LabelCommand extends Command {
     }
 }
 
-export class ACommand extends Command {
-    constructor({ token }) {
-        super();
-        this.tokenValue = new RegExp(constant.aCommandRegExStr, 'g').exec(token)[1];
+export class APipe extends Pipe {
+    route() {
+        return /@(\w+)/g;
     }
 
-    preprocess(context) {
-        if (new RegExp('[0-9]+', 'g').test(this.tokenValue)) {
-            context[this.tokenValue] = this.tokenValue;
+    preprocess({ context, token }) {
+        this.tokenValue = this.route().exec(token)[1];
+        if (!isNaN(this.tokenValue)) {
+            context[this.tokenValue] = +this.tokenValue;
         }
 
         return this;
@@ -59,14 +57,17 @@ export class ACommand extends Command {
     }
 }
 
-export class CCommand extends Command {
-    constructor({ token }) {
-        super();
-        let [ _, destination, command, jump ] = new RegExp(constant.cCommandRegExStr, 'g').exec(token);
+export class CPipe extends Pipe {
+    route() {
+        return /(\w+)=*([\w+!&|-]*);*(\w*)/g;
+    }
+
+    preprocess({ token }) {
+        let [ _, destination, command, jump ] = this.route().exec(token);
         this.token = { destination, command, jump };
     }
 
     compile(context) {
-        return '';
+        return '?';
     }
 }
