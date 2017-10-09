@@ -44,14 +44,19 @@ export class Parser {
     }
 
     parse() {
-        let context = {};
         return this.tokenize(this.srcCode)
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
-            .map(token => [token, this.parserPipes.find(pipe => pipe.route().test(token))])
-            .map(([ token, pipe ], line) => pipe.preprocess({ token, context, line }))
-            .filter(pipe => pipe.valid())
-            .map(pipe => pipe.compile(context))
+            .map(token => ({
+                token,
+                pipe: this.parserPipes.find(pipe => pipe.route().test(token))
+            }))
+            .map(({ token, pipe }, line) => ({
+                pipe,
+                token: pipe.preprocess({ token, line })
+            }))
+            .filter(({ pipe }) => pipe.valid())
+            .map(({ pipe, token }, line) => pipe.compile({ token, line }))
             .join(constant.newLine);
     }
 }

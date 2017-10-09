@@ -1,4 +1,4 @@
-import { Pipe, Parser } from './command-parser';
+import { Pipe, Parser } from './pipe-parser';
 import * as config from './config';
 
 
@@ -19,13 +19,7 @@ export class LabelPipe extends Pipe {
     }
 
     preprocess({ token, line }) {
-        this.line = line;
-        this.tokenValue = this.route().exec(token)[1];
-    }
-
-    preprocess({ context }) {
-        context[this.tokenValue] = (line + 1).toString(2);
-        return this;
+        return { key: this.route().exec(token)[1], value: (line + 1).toString(2) };
     }
 
     valid() {
@@ -43,17 +37,17 @@ export class APipe extends Pipe {
         return /@(\w+)/g;
     }
 
-    preprocess({ context, token }) {
-        this.tokenValue = this.route().exec(token)[1];
-        if (!isNaN(this.tokenValue)) {
-            context[this.tokenValue] = +this.tokenValue;
+    preprocess({ token }) {
+        let tokenValue = this.route().exec(token)[1];
+        if (!isNaN(tokenValue)) {
+            return { key: tokenValue, value: tokenValue };
         }
-
-        return this;
     }
 
-    compile(context) {
-        return context[this.tokenValue] ||
+    compile({ context, token }) {
+        console.log(context);
+        return context.hasOwnProperty(token) ?
+            context[token] :
             this.variableAddressGenerator();
     }
 }
@@ -66,7 +60,6 @@ export class CPipe extends Pipe {
     preprocess({ token }) {
         let [ _, destination, command, jump ] = this.route().exec(token);
         this.token = { destination, command, jump };
-        return this;
     }
 
     compile(context) {
