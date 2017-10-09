@@ -15,6 +15,7 @@ export class Pipe {
     }
 
     preprocess({ token }) {
+        this.token = token;
         return this;
     }
 
@@ -48,8 +49,8 @@ export class Parser {
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
             .map(token => [token, this.parserPipes.find(pipe => pipe.route().test(token))])
-            .map(([ token, pipe ], commandId) => pipe.preprocess({ token, context, commandId }))
-            .filter(([ token, pipe ]) => pipe.vlid())
+            .map(([ token, pipe ], line) => pipe.preprocess({ token, context, line }))
+            .filter(pipe => pipe.valid())
             .map(pipe => pipe.compile(context))
             .join(constant.newLine);
     }

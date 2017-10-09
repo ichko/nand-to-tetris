@@ -2,11 +2,6 @@ import { Pipe, Parser } from './command-parser';
 import * as config from './config';
 
 
-let variableAddress = 16;
-function assignVariableAddress() {
-    return variableAddress++;
-}
-
 export class HackParser extends Parser {
     constructor(...args) {
         super(...args);
@@ -28,7 +23,7 @@ export class LabelPipe extends Pipe {
         this.tokenValue = this.route().exec(token)[1];
     }
 
-    preprocess(context) {
+    preprocess({ context }) {
         context[this.tokenValue] = (line + 1).toString(2);
         return this;
     }
@@ -39,6 +34,11 @@ export class LabelPipe extends Pipe {
 }
 
 export class APipe extends Pipe {
+    constructor(...args) {
+        super(...args);
+        this.variableAddressGenerator = (id => _ => id++)(16);
+    }
+
     route() {
         return /@(\w+)/g;
     }
@@ -53,7 +53,8 @@ export class APipe extends Pipe {
     }
 
     compile(context) {
-        return context[this.tokenValue] || assignVariableAddress();
+        return context[this.tokenValue] ||
+            this.variableAddressGenerator();
     }
 }
 
@@ -65,6 +66,7 @@ export class CPipe extends Pipe {
     preprocess({ token }) {
         let [ _, destination, command, jump ] = this.route().exec(token);
         this.token = { destination, command, jump };
+        return this;
     }
 
     compile(context) {
