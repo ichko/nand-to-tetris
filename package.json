@@ -4,7 +4,7 @@
   "description": "Hack language compiler",
   "main": "index.js",
   "scripts": {
-    "compile": "./node_modules/.bin/babel-node index.js --presets es2015"
+    "compile": "./node_modules/.bin/babel . --out-dir compiled --ignore node_modules,compiled --presets es2015 -s true"
   },
   "repository": {
     "type": "git",
