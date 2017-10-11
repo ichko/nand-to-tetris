@@ -44,6 +44,7 @@ export class Parser {
     }
 
     parse() {
+        let context = {};
         return this.tokenize(this.srcCode)
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
@@ -53,10 +54,10 @@ export class Parser {
             }))
             .map(({ token, pipe }, line) => ({
                 pipe,
-                token: pipe.preprocess({ token, line })
+                token: pipe.preprocess({ token, line, context })
             }))
             .filter(({ pipe }) => pipe.valid())
-            .map(({ pipe, token }, line) => pipe.compile({ token, line }))
+            .map(({ pipe, token }, line) => pipe.compile({ token, line, context }))
             .join(constant.newLine);
     }
 }

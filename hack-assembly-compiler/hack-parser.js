@@ -45,7 +45,6 @@ export class APipe extends Pipe {
     }
 
     compile({ context, token }) {
-        console.log(context);
         return context.hasOwnProperty(token) ?
             context[token] :
             this.variableAddressGenerator();
