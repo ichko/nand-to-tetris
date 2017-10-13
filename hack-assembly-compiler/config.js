@@ -54,7 +54,7 @@ export const jumpMap = {
     'JMP': '111'
 };
 
-export const variablesCodes = {
+export const variableCodes = {
     'SP'    : '0',
     'LCL'   : '1',
     'ARG'   : '10',

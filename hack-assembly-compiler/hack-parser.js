@@ -1,5 +1,18 @@
 import { Pipe, Parser } from './pipe-parser';
-import { commandMap, dstMap, jumpMap } from './config';
+import { commandMap, dstMap, jumpMap, variableCodes } from './config';
+
+
+export class HackParser extends Parser {
+    constructor(...args) {
+        super(...args);
+        this.addRoutes(
+            new LabelPipe(),
+            new APipe(),
+            new CPipe(),
+            new LoadDefaultsPipe()
+        );
+    }
+}
 
 
 function toBinary(number) {
@@ -9,20 +22,17 @@ function toBinary(number) {
 function padFront(string, size, char = '0') {
     const padSize = Math.max(size - string.length + 1, 0);
     return Array(padSize).join(char) + string;
-} 
+}
 
-export class HackParser extends Parser {
-    constructor(...args) {
-        super(...args);
-        this.addRoutes(
-            new LabelPipe(),
-            new APipe(),
-            new CPipe()
-        );
+class LoadDefaultsPipe extends Pipe {
+    init(context) {
+        for (let name in variableCodes) {
+            context[name] = variableCodes[name];
+        }
     }
 }
 
-export class LabelPipe extends Pipe {
+class LabelPipe extends Pipe {
     route() {
         return /\((\w+)\)/g;
     }
@@ -40,7 +50,7 @@ export class LabelPipe extends Pipe {
     }
 }
 
-export class APipe extends Pipe {
+class APipe extends Pipe {
     constructor(...args) {
         super(...args);
         this.instructionSize = 16;
@@ -63,7 +73,7 @@ export class APipe extends Pipe {
     }
 }
 
-export class CPipe extends Pipe {
+class CPipe extends Pipe {
     route() {
         return /(\w+)=*([\w+!&|-]*);*(\w*)/g;
     }

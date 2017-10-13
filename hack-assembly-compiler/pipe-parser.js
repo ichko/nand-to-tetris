@@ -6,6 +6,8 @@ export const constant = {
 }
 
 export class Pipe {
+    init() {}
+
     route() {
         throw new Error('No valid pipe route found!');
     }
@@ -47,6 +49,7 @@ export class Parser {
 
     parse() {
         let context = {};
+        this.parserPipes.forEach(pipe => pipe.init(context));
         return this.tokenize(this.srcCode)
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
