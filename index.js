@@ -1,18 +1,17 @@
 import { HackParser } from './hack-assembly-compiler/hack-parser';
+import fs from 'fs';
 
 
-const srcCode = `
-// Computes R0 = 2 + 3  (R0 refers to RAM[0])
+const inFile =  process.argv[2] || '';
+const outFile = process.argv[3] || 'a.out';
+const parser = new HackParser();
 
-@2
-D=A
-@3
-D=D+A //cdsa
-@0
-M=D
-`;
+fs.readFile(inFile, 'utf8', (err, src) => {
+    if (err) throw err;
 
-const parser = new HackParser(srcCode);
-const machineCode = parser.parse();
+    const machineCode = parser
+        .loadSrc(src)
+        .parse();
 
-console.log(machineCode);
+    fs.writeFile(outFile, machineCode);
+});

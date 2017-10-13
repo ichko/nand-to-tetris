@@ -53,13 +53,13 @@ export class APipe extends Pipe {
 
     compile({ context, token }) {
         const [ _, tokenValue ] = this.route().exec(token);
-            return padFront(toBinary(
-                isNaN(tokenValue) ? 
-                    context.hasOwnProperty(token) ?
-                        context[token] :
-                        this.variableAddressGenerator() :
-                tokenValue
-            ), this.instructionSize);
+        return padFront(toBinary(
+            isNaN(tokenValue) ? 
+                context.hasOwnProperty(token) ?
+                    context[token] :
+                    this.variableAddressGenerator() :
+            tokenValue
+        ), this.instructionSize);
     }
 }
 

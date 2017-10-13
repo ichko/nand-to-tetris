@@ -1,5 +1,5 @@
 export const constant = {
-    whitespaceRegex: new RegExp('[\s]+', 'g'),
+    whitespaceRegex: new RegExp('[\s\r]+', 'g'),
     commentRegex: new RegExp('\/\/.+', 'g'),
     emptyWord: '',
     newLine: '\n'
@@ -7,17 +7,14 @@ export const constant = {
 
 export class Pipe {
     route() {
-        return /$^/g;
+        throw new Error('No valid pipe route found!');
     }
 
     valid() {
         return true;
     }
 
-    preprocess({ token }) {
-        this.token = token;
-        return this;
-    }
+    preprocess() {}
 
     compile(context) {
         return context[this.token];
@@ -38,8 +35,13 @@ export class Parser {
         ];
     }
 
+    loadSrc(srcCode = constant.emptyWord) {
+        this.srcCode = srcCode;
+        return this;
+    }
+
     addRoutes(...routes) {
-        this.parserPipes.push(...routes);
+        this.parserPipes = [...routes].concat(...this.parserPipes);
         return this;
     }
 
@@ -48,10 +50,12 @@ export class Parser {
         return this.tokenize(this.srcCode)
             .map(token => this.normalize(token))
             .filter(token => token !== constant.emptyWord)
-            .map(token => ({
-                token,
-                pipe: this.parserPipes.find(pipe => pipe.route().test(token))
-            }))
+            .map(token => {
+                return {
+                    token,
+                    pipe: this.parserPipes.find(pipe => pipe.route().test(token))
+                }
+            })
             .map(({ token, pipe }, line) => {
                 const { key, value } = pipe.preprocess({ token, line, context }) || {};
                 if (key)
