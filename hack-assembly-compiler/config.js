@@ -1,4 +1,4 @@
-export const computationCodes = {
+export const commandMap = {
     ''   : '0000000',
     '0'  : '0101010',
     '1'  : '0111111',
@@ -30,9 +30,9 @@ export const computationCodes = {
     'D|M': '1010101'
 };
 
-export const destinationCodes = {
-    '0'  : '000',
+export const dstMap = {
     ''   : '000',
+    '0'  : '000',
     'M'  : '001',
     'D'  : '010',
     'MD' : '011',
@@ -42,9 +42,9 @@ export const destinationCodes = {
     'AMD': '111'
 };
 
-export const jumpCodes = {
-    '0'  : '000',
+export const jumpMap = {
     ''   : '000',
+    '0'  : '000',
     'JGT': '001',
     'JEQ': '010',
     'JGE': '011',

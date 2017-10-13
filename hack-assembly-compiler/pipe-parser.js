@@ -52,10 +52,13 @@ export class Parser {
                 token,
                 pipe: this.parserPipes.find(pipe => pipe.route().test(token))
             }))
-            .map(({ token, pipe }, line) => ({
-                pipe,
-                token: pipe.preprocess({ token, line, context })
-            }))
+            .map(({ token, pipe }, line) => {
+                const { key, value } = pipe.preprocess({ token, line, context }) || {};
+                if (key)
+                    context[key] = value;
+
+                return { pipe, token }
+            })
             .filter(({ pipe }) => pipe.valid())
             .map(({ pipe, token }, line) => pipe.compile({ token, line, context }))
             .join(constant.newLine);

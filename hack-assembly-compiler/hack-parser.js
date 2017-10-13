@@ -1,6 +1,15 @@
 import { Pipe, Parser } from './pipe-parser';
-import * as config from './config';
+import { commandMap, dstMap, jumpMap } from './config';
 
+
+function toBinary(number) {
+    return parseInt(number).toString(2);
+}
+
+function padFront(string, size, char = '0') {
+    const padSize = Math.max(size - string.length + 1, 0);
+    return Array(padSize).join(char) + string;
+} 
 
 export class HackParser extends Parser {
     constructor(...args) {
@@ -19,7 +28,11 @@ export class LabelPipe extends Pipe {
     }
 
     preprocess({ token, line }) {
-        return { key: this.route().exec(token)[1], value: (line + 1).toString(2) };
+        const [ _, tokenValue ] = this.route().exec(token);
+        return {
+            key: tokenValue,
+            value: line + 1
+        };
     }
 
     valid() {
@@ -30,6 +43,7 @@ export class LabelPipe extends Pipe {
 export class APipe extends Pipe {
     constructor(...args) {
         super(...args);
+        this.instructionSize = 16;
         this.variableAddressGenerator = (id => _ => id++)(16);
     }
 
@@ -37,17 +51,15 @@ export class APipe extends Pipe {
         return /@(\w+)/g;
     }
 
-    preprocess({ token }) {
-        let tokenValue = this.route().exec(token)[1];
-        if (!isNaN(tokenValue)) {
-            return { key: tokenValue, value: tokenValue };
-        }
-    }
-
     compile({ context, token }) {
-        return context.hasOwnProperty(token) ?
-            context[token] :
-            this.variableAddressGenerator();
+        const [ _, tokenValue ] = this.route().exec(token);
+            return padFront(toBinary(
+                isNaN(tokenValue) ? 
+                    context.hasOwnProperty(token) ?
+                        context[token] :
+                        this.variableAddressGenerator() :
+                tokenValue
+            ), this.instructionSize);
     }
 }
 
@@ -56,12 +68,16 @@ export class CPipe extends Pipe {
         return /(\w+)=*([\w+!&|-]*);*(\w*)/g;
     }
 
-    preprocess({ token }) {
-        let [ _, destination, command, jump ] = this.route().exec(token);
-        this.token = { destination, command, jump };
-    }
-
-    compile(context) {
-        return '?';
+    compile({ token }) {
+        const [ _,
+            destinationKey,
+            computationKey,
+            jumpKey
+        ] = this.route().exec(token);
+        
+        return '111' +
+            commandMap[computationKey] +
+            dstMap[destinationKey] +
+            jumpMap[jumpKey];
     }
 }
