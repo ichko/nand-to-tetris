@@ -1,6 +1,6 @@
 export const constant = {
-    whitespaceRegex: new RegExp('[\s\r]+', 'g'),
-    commentRegex: new RegExp('\/\/.+', 'g'),
+    whitespaceRegex: /[\s\r]+/g,
+    commentRegex: /\/\/.*/g,
     emptyWord: '',
     newLine: '\n'
 }

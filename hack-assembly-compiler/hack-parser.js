@@ -38,7 +38,7 @@ class LabelPipe extends Pipe {
     }
 
     route() {
-        return /\((\w+)\)/g;
+        return /\((.*)\)/g;
     }
 
     preprocess({ token, line }) {
@@ -57,37 +57,37 @@ class LabelPipe extends Pipe {
 class APipe extends Pipe {
     init() {
         this.instructionSize = 16;
-        this.variableAddressGenerator = (id => _ => id++)(16);
+        this.variableAddressGenerator = (id => context => id++)(16);
     }
 
     route() {
-        return /@(\w+)/g;
+        return /@(.*)/g;
     }
 
     compile({ context, token }) {
         const [ _, tokenValue ] = this.route().exec(token);
-        return padFront(toBinary(
-            context.hasOwnProperty(tokenValue) ?
-                context[tokenValue] :
-                isNaN(tokenValue) ?
-                    this.variableAddressGenerator() :
-                    tokenValue
-        ), this.instructionSize);
+        let evaluatedToken = context.hasOwnProperty(tokenValue) ?
+            context[tokenValue] :
+            isNaN(tokenValue) ?
+                this.variableAddressGenerator(context) :
+                tokenValue;
+        context[tokenValue] = evaluatedToken;
+        return padFront(toBinary(evaluatedToken), this.instructionSize);
     }
 }
 
 class CPipe extends Pipe {
     route() {
-        return /(\w+)=*([\w+!&|-]*);*(\w*)/g;
+        return /((\w+)=)*([\w+!&|-]*);*(\w*)/g;
     }
 
     compile({ token }) {
-        const [ _,
-            destinationKey,
-            computationKey,
-            jumpKey
+        const [ _, __,
+            destinationKey = '',
+            computationKey = '',
+            jumpKey = ''
         ] = this.route().exec(token);
-        
+
         return '111' +
             commandMap[computationKey] +
             dstMap[destinationKey] +
