@@ -33,6 +33,10 @@ class LoadDefaultsPipe extends Pipe {
 }
 
 class LabelPipe extends Pipe {
+    init() {
+        this.labelIndex = 0;
+    }
+
     route() {
         return /\((\w+)\)/g;
     }
@@ -41,7 +45,7 @@ class LabelPipe extends Pipe {
         const [ _, tokenValue ] = this.route().exec(token);
         return {
             key: tokenValue,
-            value: line + 1
+            value: line - this.labelIndex++
         };
     }
 
@@ -51,8 +55,7 @@ class LabelPipe extends Pipe {
 }
 
 class APipe extends Pipe {
-    constructor(...args) {
-        super(...args);
+    init() {
         this.instructionSize = 16;
         this.variableAddressGenerator = (id => _ => id++)(16);
     }
@@ -64,11 +67,11 @@ class APipe extends Pipe {
     compile({ context, token }) {
         const [ _, tokenValue ] = this.route().exec(token);
         return padFront(toBinary(
-            isNaN(tokenValue) ? 
-                context.hasOwnProperty(token) ?
-                    context[token] :
+            context.hasOwnProperty(tokenValue) ?
+                context[tokenValue] :
+                isNaN(tokenValue) ?
                     this.variableAddressGenerator() :
-            tokenValue
+                    tokenValue
         ), this.instructionSize);
     }
 }
