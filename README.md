@@ -1,5 +1,5 @@
 # Nand to tetris
-This repository contains HWs and material from the nand to tetris course - [link](https://www.coursera.org/learn/build-a-computer/home/welcome)
+This repository contains HWs and materials from the Coursera course - [Nand To Tetris](https://www.coursera.org/learn/build-a-computer/home/welcome)
 
 ## Hack compiler
 
@@ -56,7 +56,7 @@ fs.readFile(inFile, 'utf8', (err, src) => {
 
 Half adder example
 
-```hdl
+```vhdl
 CHIP HalfAdder {
     IN a, b;    // 1-bit inputs
     OUT sum,    // Right bit of a + b 
@@ -70,7 +70,7 @@ CHIP HalfAdder {
 
 ALU example
 
-```hdl
+```vhdl
 CHIP ALU {
     IN  
         x[16], y[16],  // 16-bit inputs
