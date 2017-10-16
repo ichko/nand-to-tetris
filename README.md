@@ -49,7 +49,11 @@ fs.readFile(inFile, 'utf8', (err, src) => {
 
 ### Instruction model of the ALU
 
-![alt text](assets/alu-instruction-model.PNG "ALU instruction model")
+![ALU instruction model](assets/alu-instruction-model.PNG "ALU instruction model")
+
+### Internal design of the parser
+
+![Design of the parser](assets/design.jpg "Design of the parser")
 
 
 ## HDL chip implementations
