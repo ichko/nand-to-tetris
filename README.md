@@ -47,9 +47,9 @@ fs.readFile(inFile, 'utf8', (err, src) => {
 });
 ```
 
-### Instruction model of the ALU
+### 'C' command representation
 
-![ALU instruction model](assets/alu-instruction-model.PNG "ALU instruction model")
+!['C' command representation](assets/alu-instruction-model.PNG "'C' command representation")
 
 ### Internal design of the parser
 
